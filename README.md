@@ -9,7 +9,7 @@ This **Wargame** is a turn-based strategy video game inspired by classic tableto
 - **Point system**: Each unit has a point cost to balance the squads.
 - **Multi-shot attacks**: Some weapons fire multiple shots per turn, each with its own hit probability.
 - **Visual and sound effects**: Explosion animations, missed shots, health bar, ambient and attack sounds.
-- **Supervised AI (MLP Neural Network)**: The game can record matches and train a bot using a Multilayer Perceptron (MLP, via scikit-learn) and use it as an opponent.
+- **Supervised AI (MLP Neural Network)(in the future)**: The game can record matches and train a bot using a Multilayer Perceptron (MLP, via scikit-learn) and use it as an opponent.
 - **Customization**: Easily add new units, change scenarios, rules, and maps via JSON files.
 
 ## Requirements
@@ -32,7 +32,7 @@ The following image shows the function of the different contents:
   <img align="middle" width="800" src="doc/structure.png"/>
 </p>
 
-Sorry for having written the code in Italian; it will be translated into English in the future.
+All this allows you to quickly change the scenario simply by creating a copy of the folder `assets/` and modifying it.
 
 ## Starting the Game
 
@@ -68,7 +68,7 @@ python main.py
 
 ## Rulebook
 
-For detailed game rules, see the `manuale.md` file.
+For detailed game rules, see the `rulebook.md` file.
 
 ## License
 
@@ -78,6 +78,7 @@ Images and sounds are for demonstration purposes only.
 ## Resources
 
 Some resources are temporary and will be improved in the future.
+I'm sorry for having written the code in Italian; it will be translated into English in the future.
 
 ## Questions, bugs, or ideas?
 

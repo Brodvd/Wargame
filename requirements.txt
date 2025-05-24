@@ -1,0 +1,4 @@
+pygame
+pillow
+matplotlib
+scikit-learn

@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
 from sklearn.model_selection import learning_curve
 import matplotlib.pyplot as plt
-from variabili import squadraBot, file_dataset
+from variables import squadraBot, file_dataset
 
 train = True
 test = False

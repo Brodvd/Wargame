@@ -43,7 +43,7 @@ Sorry for having written the code in Italian; it will be translated into English
 5. Start the game with:
 
 ```sh
-python prova.py
+python main.py
 ```
 
 ## Gameplay
@@ -57,7 +57,7 @@ python prova.py
 
 - The game can record each turn in a JSON file to train a supervised bot.
 - The bot uses a Multilayer Perceptron (MLP) neural network to learn strategies from the collected data.
-- For details on how to train and use the bot, see the separate `readme.md` and the `Hierarchical Policy.py` file.
+- For details on how to train and use the bot, see the separate `readme.md` and the `MLP.py` file.
 
 ## Customization
 

@@ -2,7 +2,7 @@ import pygame
 import sys
 import json
 import random
-from variabili import *
+from variables import *
 
 # Inizializza Pygame
 pygame.init()

@@ -51,7 +51,7 @@ volume_sound = 0.0
 volume = 0.0
 
 # Immagini
-background_image = pygame.image.load("assets/extra_background.tiff")
+background_image = pygame.image.load("assets/extra_background.webp")
 explosion_image = "assets/explosion3.png"
 music_icon = pygame.image.load("assets/music_icon.webp")
 sound_icon = pygame.image.load("assets/sound_icon.webp")

@@ -5,7 +5,7 @@ This **Wargame** is a turn-based strategy video game inspired by classic tableto
 ## 💪 Main Features
 
 - **Turn-based gameplay**: Each player controls a squad of units and performs actions such as movement, attack, ambush, heal, etc.
-- **A lot of units**: Infantry, tanks, machine guns, mortars, howitzers, armored vehicles, each with unique stats and abilities.
+- **Units**: Infantry, tanks, machine guns, mortars, howitzers, armored vehicles, each with unique stats and abilities.
 - **Point system**: Each unit has a point cost to balance the squads.
 - **Multi-shot attacks**: Some weapons fire multiple shots per turn, each with its own hit probability.
 - **Visual and sound effects**: Explosion animations, missed shots, health bar, ambient and attack sounds.
@@ -49,7 +49,7 @@ python main.py
 ## 🎮 Gameplay
 
 - **Select a unit** by clicking on it.
-- Choose the action using the buttons that appear around the unit (Fire, Forward, Run, Ambush, Heal, Down).
+- Choose the action using the buttons that appear around the unit (Fire, Forward, Run, Ambush, Rally, Down).
 - Move units and attack enemies following the movement rules, line of sight, and weapon-target compatibility.
 - The team that eliminates all enemy units and reaches 1000 points wins.
 
@@ -64,11 +64,11 @@ python main.py
 - **Units and squads**: Editable via JSON files in the `assets/` folder.
 - **Rules**: You can change unit parameters directly in the code.
 - **Animations, images, and sounds**: Replace or add sprites and audio files in the `assets/` folder.
-  For more details, see the `custom.md` file.
+  For more details, see the [custom.md](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/custom.md) file.
 
 ## 📚 Rulebook
 
-For detailed game rules, see the `rulebook.md` file.
+For detailed game rules, see the [rulebook](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/rulebook.md) .
 
 ## 📖 License
 

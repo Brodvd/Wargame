@@ -8,6 +8,7 @@ This **Wargame** is a turn-based strategy video game inspired by classic tableto
 - **Units**: Infantry, tanks, machine guns, mortars, howitzers, armored vehicles, each with unique stats and abilities.
 - **Point system**: Each unit has a point cost to balance the squads.
 - **Multi-shot attacks**: Some weapons fire multiple shots per turn, each with its own hit probability.
+- **Terrain Properties** : Use the battlefield to your advantage to exploit properties such as line of sight or defense bonuses
 - **Visual and sound effects**: Explosion animations, missed shots, health bar, ambient and attack sounds.
 - **Supervised AI (MLP Neural Network)(in the future)**: The game can record matches and train a bot using a Multilayer Perceptron (MLP, via scikit-learn) and use it as an opponent.
 - **Customization**: Easily add new units, change scenarios, rules, and maps via JSON files.
@@ -72,7 +73,7 @@ For detailed game rules, see the [rulebook](https://github.com/Brodvd/Wargame/bl
 
 ## 📖 License
 
-This project is distributed under the GPL-2 license.  
+This project is distributed under the GPL-3 license.  
 Images and sounds are for demonstration purposes only.
 
 ## 🗃️ Resources

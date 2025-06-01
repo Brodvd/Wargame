@@ -16,7 +16,7 @@ squadraInizio = "Rosso"
 
 # Bot
 squadraBot ="Rosso"
-registra_dataset = True
+registra_dataset = False
 file_dataset = "IA/dataset/try.json"
 # avanza compatto, pressa a destra, pressa a sinistra, pressa centrale, difendi, attacca, ritirati
 strategy_bot = "attacca"

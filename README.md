@@ -72,6 +72,9 @@ All this allows you to quickly change the scenario simply by creating a copy of 
 ## 🏃 Starting the Game
 
 1. Clone the repository and navigate to the project folder.
+```
+git clone https://github.com/Brodvd/Wargame.git
+```
 2. Check the rulebook.
 3. Make sure you have the resource files (`assets/`), configuration files (`grid_properties.json`, etc.).
 4. Build your army respecting the 1000-point limit per squad (if you don't want to use the default one).

@@ -18,8 +18,9 @@ squadraInizio = "Rosso"
 squadraBot ="Rosso"
 registra_dataset = False
 file_dataset = "IA/dataset/try.json"
+predict_dataset = 'IA/predict/predict_right.json'
 # avanza compatto, pressa a destra, pressa a sinistra, pressa centrale, difendi, attacca, ritirati
-strategy_bot = "attacca"
+strategy_bot = "attacca a sinistra"
 strategy_enemy = "difendi"
 
 # punteggi
@@ -47,11 +48,14 @@ sound_slider_y = (HEIGHT - (HEIGHT / 2.5)) // 1.1 + (HEIGHT_EXTRA_TOP) / 2
 sound_slider_height = HEIGHT / 2.5
 sound_slider_width = 20
 
-volume_sound = 0.0
-volume = 0.0
+volume_sound = 0.5
+volume = 0.5
 
-# Immagini
+# Percorsi
 background_image = pygame.image.load("assets/extra_background.webp")
 explosion_image = "assets/explosion3.png"
 music_icon = pygame.image.load("assets/music_icon.webp")
 sound_icon = pygame.image.load("assets/sound_icon.webp")
+sound_music = "assets/sound.wav"
+background_music = "assets/background_music.ogg"
+json_file = 'assets/grid_properties.json'

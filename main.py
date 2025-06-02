@@ -9,7 +9,7 @@ pygame.init()
 
 # Configura la finestra
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Wargame WW2")
+pygame.display.set_caption("Wargame")
 
 game_data = []  # Lista per memorizzare lo stato e le azioni di ogni turno
 
@@ -531,8 +531,8 @@ class Pedina:
                         cerchio_x = (x + dx) * GRID_SIZE + GRID_SIZE // 2 + WIDTH_EXTRA_LEFT
                         cerchio_y = (y + dy) * GRID_SIZE + GRID_SIZE // 2 + HEIGHT_EXTRA_TOP
                         if cerchio_x < WIDTH - WIDTH_EXTRA_RIGHT:
-                            target = next((p for p in pedine if p.posizione == nuova_posizione), None)
                             type_1 = type(self).__name__
+                            target = next((p for p in pedine if p.posizione == nuova_posizione and compatibilità(type_1, type(p).__name__)), None)
                             type_2 = type(target).__name__
                             if target:
                                 if self.disegna_rossi:
@@ -575,7 +575,7 @@ class Pedina:
         if registra_dataset:
             registra_turno(pedine, azione, teams)  # Registra l'azione
         
-        attack_sound = pygame.mixer.Sound("assets/sound.wav")
+        attack_sound = pygame.mixer.Sound(sound_music)
         if bersaglio.giù:    
             giù_bonus = 20
         else:
@@ -602,6 +602,9 @@ class Pedina:
                         self.imboscata = False  # L'azione imboscata vale solo per il turno successivo
                     else:
                         danno_effettivo = int(((danno + variazione_danno) * (1 - defense_bonus / 100)) - giù_bonus)
+
+                    if danno_effettivo < 0:
+                        danno_effettivo = 0
 
                     print(f"{self.nome} attacca {bersaglio.nome} con potenza {danno} con variazione {variazione_danno} con bonus difesa {defense_bonus}% e giù_bonus {giù_bonus}. Danno effettivo: {danno_effettivo}")
                     bersaglio.prendi_danno(danno_effettivo, pedine)
@@ -782,8 +785,8 @@ def gestisci_click(mouse_pos, pedine, grid_properties, teams):
                             GRID_SIZE
                         )
                         if rect.top >= HEIGHT_EXTRA_TOP and rect.bottom <= (HEIGHT - HEIGHT_EXTRA_BOTTOM):
-                            target = next((p for p in pedine if p.posizione == nuova_posizione), None)
                             type_1 = type(pedina).__name__
+                            target = next((p for p in pedine if p.posizione == nuova_posizione and compatibilità(type_1, type(p).__name__)), None)
                             type_2 = type(target).__name__
                             if rect.collidepoint(mouse_pos):
                                 cell_properties = get_cell_properties(nuova_posizione, grid_properties)
@@ -796,7 +799,10 @@ def gestisci_click(mouse_pos, pedine, grid_properties, teams):
                                             pedina.azione_corrente = None  # Resetta l'azione corrente
                                             pedina.ha_agito = True
                                             return
-                                elif not pedina.avanti: # non c'è un belin di nemico
+                                    elif pedina.avanti:
+                                        pedina.azione_corrente = None
+                                        pedina.ha_agito = True
+                                elif not pedina.avanti: # non ci sono nemici
                                     pedina.azione_corrente = None
                                     pedina.ha_agito = False
                                     pedina.tasti_visibili = True
@@ -841,7 +847,8 @@ def gestisci_click(mouse_pos, pedine, grid_properties, teams):
                                     for dy_att in range(-raggio_attacco, raggio_attacco + 1):
                                         if abs(dx_att) + abs(dy_att) <= raggio_attacco and (dx_att != 0 or dy_att != 0):
                                             posizione_attacco = (nuova_posizione[0] + dx_att, nuova_posizione[1] + dy_att) #posizione iniziale
-                                            target = next((p for p in pedine if p.posizione == posizione_attacco and p.team != pedina.team), None)
+                                            type_1 = type(pedina).__name__
+                                            target = next((p for p in pedine if p.posizione == posizione_attacco and p.team != pedina.team and compatibilità(type_1, type(p).__name__)), None)
                                             if target and not line_of_sight_blocked(pedina.posizione, target.posizione, grid_properties):
                                                 nemici_trovati = True
                                                 break
@@ -941,7 +948,7 @@ def gestisci_click(mouse_pos, pedine, grid_properties, teams):
                         pedina.azione_corrente = None
                         azione = {
                             "pedina": pedina.nome,
-                            "type": "giu", # il json non riconosce ù
+                            "type": "giu", # il json non riconosce "ù"
                             "target": None,
                             "position": list(pedina.posizione)
                         }
@@ -1006,7 +1013,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Carica le proprietà delle caselle
-    grid_properties = load_grid_properties('assets/grid_properties.json')
+    grid_properties = load_grid_properties(json_file)
 
     # Carica le icone delle caselle
     terrain_icons = load_terrain_icons(grid_properties)
@@ -1024,7 +1031,7 @@ def main():
 
     # Carica e riproduci la musica di sottofondo
     pygame.mixer.init()  # Inizializza il mixer audio
-    pygame.mixer.music.load("assets/background_music.ogg")
+    pygame.mixer.music.load(background_music)
 
     pygame.mixer.music.set_volume(volume)
     pygame.mixer.music.play(-1)  # Riproduci in loop

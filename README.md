@@ -19,10 +19,11 @@ This **Wargame** is a turn-based strategy video game inspired by classic tableto
 - [pygame](https://www.pygame.org/)
 - [scikit-learn](https://scikit-learn.org/) (only for the AI part)
 - [matplotlib](https://matplotlib.org/) (only for the AI part)
+- [seaborn](https://seaborn.pydata.org/) (only for the AI part)
 - All dependencies can be installed via pip:
 
 ```sh
-pip install pygame scikit-learn matplotlib
+pip install pygame scikit-learn matplotlib seaborn
 ```
 
 ## 🌳 Project Structure

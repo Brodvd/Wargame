@@ -4,22 +4,19 @@
             "name": "Rosso",
             "color": [255, 0, 0],
             "pedine": [
-                {"type": "CarroMedio", "name": "Panzer Rosso", "position": [0, 5]},
+                {"type": "CarroMedio", "name": "Carro Medio Rosso", "position": [0, 5]},
                 {"type": "Fucile", "name": "Fucile Rosso", "position": [0, 7]},
-                {"type": "MitragliatriceLeggera", "name": "MitragliatriceLeggera Rossa", "position": [0, 8]},
                 {"type": "Obice", "name": "Obice Rosso", "position": [1, 6]},
-                {"type": "FucileAssalto", "name": "FucileAssalto Rosso", "position": [1, 7]}
+                {"type": "FucileAssalto", "name": "Fucile Assalto Rosso", "position": [1, 7]}
             ]
         },
         {
             "name": "Blu",
             "color": [0, 0, 255],
             "pedine": [
-                {"type": "CarroPesante", "name": "Panzer Blu", "position": [4, 6]},
+                {"type": "CarroPesante", "name": "Carro Pesante Blu", "position": [4, 6]},
                 {"type": "Fucile", "name": "Fucile Blu", "position": [3, 5]},
-                {"type": "MitragliatriceMedia", "name": "MitragliatriceMedia Blu", "position": [4, 7]},
-                {"type": "Mortaio", "name": "Mortaio Blu", "position": [3, 7]},
-                {"type": "Piromane", "name": "Piromane Blu", "position": [4, 8]}
+                {"type": "MitragliatriceMedia", "name": "MMG Blu", "position": [4, 7]}
             ]
         }
     ],

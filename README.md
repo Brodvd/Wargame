@@ -69,12 +69,11 @@ python main.py
 
 ## 📚 Rulebook
 
-For detailed game rules, see the [rulebook](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/rulebook.md) .
+For detailed game rules, see the [rulebook](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/rulebook.md).
 
 ## 📖 License
 
-This project is distributed under the GPL-3 license.  
-Images and sounds are for demonstration purposes only.
+This project is distributed under the GPL-3 license. Images and sounds are for demonstration purposes only.
 
 ## 🗃️ Resources
 

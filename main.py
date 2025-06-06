@@ -14,13 +14,7 @@ pygame.display.set_caption("Wargame")
 game_data = []  # Lista per memorizzare lo stato e le azioni di ogni turno
 
 def registra_turno(pedine, action, teams, file_path=file_dataset):
-    """
-    Registra lo stato del gioco e le azioni eseguite in un turno e salva immediatamente su file.
-
-    :param state: Stato attuale del gioco (pedine e loro proprietà).
-    :param action: Azione eseguita dalla squadra.
-    :param file_path: Percorso del file JSON in cui salvare i dati.
-    """
+    """Registra lo stato del gioco e le azioni eseguite in un turno e salva immediatamente su file."""
     global current_team_index
     current_team = teams[current_team_index]
     if current_team.name == squadraBot:
@@ -77,12 +71,12 @@ def extract_frames_from_sprite_sheet(sprite_sheet_path, frame_width, frame_heigh
     sheet_width, sheet_height = sprite_sheet.get_size()
     frames = []
 
-    for y in range(0, sheet_height, frame_height):  # Itera sulle righe
-        for x in range(0, sheet_width, frame_width):  # Itera sulle colonne
-            # Estrai il fotogramma come una superficie Pygame
-            frame = sprite_sheet.subsurface(pygame.Rect(x, y, frame_width, frame_height))
-            frames.append(frame)
-
+    for y in range(0, sheet_height, frame_height):
+        for x in range(0, sheet_width, frame_width):
+            # Estrai solo se il frame sta dentro i limiti
+            if x + frame_width <= sheet_width and y + frame_height <= sheet_height:
+                frame = sprite_sheet.subsurface(pygame.Rect(x, y, frame_width, frame_height))
+                frames.append(frame)
     return frames
 
 def play_animation(screen, frames, position, frame_delay=FPS):
@@ -95,8 +89,8 @@ def play_animation(screen, frames, position, frame_delay=FPS):
     :param frame_delay: Numero di frame di gioco tra un fotogramma e il successivo.
     """
     # controllo per non rendere troppo veloce l'animazione (da adattare in caso si cambiasse lo sprite sheet)
-    if frame_delay > 60:
-        frame_delay = 60
+    if frame_delay > MAX_FPS_GIF:
+        frame_delay = MAX_FPS_GIF
 
     clock = pygame.time.Clock()
     for frame in frames:
@@ -237,8 +231,7 @@ def load_teams_and_pedine(grid_properties):
             else:
                 raise ValueError(f"Tipo di pedina sconosciuto: {pedina_type}")
 
-            pedina.immagine = pygame.image.load(immagine_path)
-            pedina.immagine = pygame.transform.smoothscale(pedina.immagine, (GRID_SIZE, GRID_SIZE)) # Ridimensiona l'immagine
+            pedina.immagine = pygame.image.load(immagine_path).convert_alpha()
             team.add_vehicle(pedina)
             pedine.append(pedina)
 
@@ -249,8 +242,7 @@ def load_terrain_icons(grid_properties):
     for terrain_type in grid_properties['terrain_types']:
         icon_path = f"assets/{terrain_type}.webp"
         try:
-            icon = pygame.image.load(icon_path)
-            icon = pygame.transform.smoothscale(icon, (GRID_SIZE, GRID_SIZE))
+            icon = pygame.image.load(icon_path).convert_alpha()
             icons[terrain_type] = icon
         except pygame.error:
             print(f"Icona per {terrain_type} non trovata in {icon_path}")
@@ -259,10 +251,38 @@ def load_terrain_icons(grid_properties):
 def draw_terrain_icons(screen, grid_properties, icons):
     for cell in grid_properties['cells']:
         x, y = cell['position']
+        if x >= n_celle_x or y >= n_celle_y:
+            continue
         terrain_type = cell['terrain']
         icon = icons.get(terrain_type)
         if icon:
-            screen.blit(icon, (x * GRID_SIZE + WIDTH_EXTRA_LEFT, y * GRID_SIZE + HEIGHT_EXTRA_TOP))  # Sposta l'icona
+            # Calcola la posizione e la dimensione in modo coerente
+            sx = int(x * GRID_SIZE * zoom + WIDTH_EXTRA_LEFT - offset_x)
+            sy = int(y * GRID_SIZE * zoom + HEIGHT_EXTRA_TOP - offset_y)
+            sx_next = int((x + 1) * GRID_SIZE * zoom + WIDTH_EXTRA_LEFT - offset_x)
+            sy_next = int((y + 1) * GRID_SIZE * zoom + HEIGHT_EXTRA_TOP - offset_y)
+            size_x = sx_next - sx
+            size_y = sy_next - sy
+            # Crea una superficie senza trasparenza per evitare "righe bianche"
+            icon_scaled = pygame.transform.smoothscale(icon, (size_x, size_y)).convert_alpha()
+            # Limita il disegno all'area della mappa
+            if (WIDTH_EXTRA_LEFT <= sx < WIDTH - WIDTH_EXTRA_RIGHT and
+                HEIGHT_EXTRA_TOP <= sy < HEIGHT - HEIGHT_EXTRA_BOTTOM):
+                screen.blit(icon_scaled, (sx, sy))
+
+def draw_zoom_indicator(screen, zoom):
+    """Disegna il valore dello zoom in percentuale in alto a destra."""
+    font = pygame.font.Font(None, 32)
+    zoom_percent = int(zoom * 100)
+    text = font.render(f"Zoom: {zoom_percent}%", True, (40, 40, 40))
+    margin = 16
+    text_rect = text.get_rect(topright=(WIDTH - WIDTH_EXTRA_RIGHT, margin))
+    # Sfondo bianco trasparente per leggibilità
+    bg_rect = text_rect.inflate(12, 8)
+    s = pygame.Surface(bg_rect.size, pygame.SRCALPHA)
+    s.fill((255, 255, 255, 180))
+    screen.blit(s, bg_rect.topleft)
+    screen.blit(text, text_rect)
 
 def draw_counters(screen):
     font = pygame.font.Font(None, 36)  # Font per il testo
@@ -300,6 +320,48 @@ def draw_circles(tipo, surface, center):
         pygame.draw.circle(surface, RED, center, GRID_SIZE/3, 6)
         pygame.draw.circle(surface, RED, center, GRID_SIZE/2, 4)
 
+def draw_view_scrollbars(screen):
+    """Disegna le barre di scorrimento grigie che mostrano la porzione visibile della mappa, staccate e arrotondate."""
+    # Margine tra la mappa e le barre
+    margin = 6
+    # Dimensioni area visibile
+    view_w = WIDTH - WIDTH_EXTRA_LEFT - WIDTH_EXTRA_RIGHT
+    view_h = HEIGHT - HEIGHT_EXTRA_TOP - HEIGHT_EXTRA_BOTTOM
+    # Dimensioni mappa totale (in pixel, considerando lo zoom)
+    map_w = int(n_celle_x * GRID_SIZE * zoom)
+    map_h = int(n_celle_y * GRID_SIZE * zoom)
+
+    # --- Barra orizzontale (in basso) ---
+    bar_h = 12
+    bar_y = HEIGHT - HEIGHT_EXTRA_BOTTOM + margin
+    bar_x = WIDTH_EXTRA_LEFT + margin
+    bar_w = view_w - margin * 2
+    # Area visibile (thumb)
+    if map_w > view_w:
+        thumb_w = int(bar_w * (view_w / map_w))
+        thumb_x = int(bar_x + (offset_x / (map_w - view_w)) * (bar_w - thumb_w))
+    else:
+        thumb_w = bar_w
+        thumb_x = bar_x
+
+    pygame.draw.rect(screen, (180, 180, 180), (bar_x, bar_y, bar_w, bar_h), border_radius=4)
+    pygame.draw.rect(screen, (100, 100, 100), (thumb_x, bar_y, thumb_w, bar_h), border_radius=4)
+
+    # --- Barra verticale (a destra) ---
+    bar_w_v = 12
+    bar_x_v = WIDTH - WIDTH_EXTRA_RIGHT + margin
+    bar_y_v = HEIGHT_EXTRA_TOP + margin
+    bar_h_v = view_h - margin * 2
+    if map_h > view_h:
+        thumb_h = int(bar_h_v * (view_h / map_h))
+        thumb_y = int(bar_y_v + (offset_y / (map_h - view_h)) * (bar_h_v - thumb_h))
+    else:
+        thumb_h = bar_h_v
+        thumb_y = bar_y_v
+
+    pygame.draw.rect(screen, (180, 180, 180), (bar_x_v, bar_y_v, bar_w_v, bar_h_v), border_radius=6)
+    pygame.draw.rect(screen, (100, 100, 100), (bar_x_v, thumb_y, bar_w_v, thumb_h), border_radius=6)
+
 def vittoria(screen, squadra_vincente):
     font = pygame.font.Font(None, 72)  # Font grande per il messaggio di vittoria
     vittoria_text = font.render(f"Vittoria della squadra {squadra_vincente}!", True, MILITARY_GREEN)
@@ -324,6 +386,31 @@ def calcola_punti_squadra(pedine, team):
     :return: Somma dei punti delle pedine della squadra.
     """
     return sum(pedina.valPunti for pedina in pedine if pedina.team == team)
+
+def world_to_screen(x, y):
+    """Converte coordinate griglia in coordinate schermo considerando zoom e pan."""
+    sx = int(x * GRID_SIZE * zoom + WIDTH_EXTRA_LEFT - offset_x)
+    sy = int(y * GRID_SIZE * zoom + HEIGHT_EXTRA_TOP - offset_y)
+    return sx, sy
+
+def screen_to_world(sx, sy):
+    """Converte coordinate schermo in coordinate griglia (float, non int!)."""
+    x = (sx - WIDTH_EXTRA_LEFT + offset_x) / (GRID_SIZE * zoom)
+    y = (sy - HEIGHT_EXTRA_TOP + offset_y) / (GRID_SIZE * zoom)
+    return x, y
+
+def zoom_at_center(new_zoom, old_zoom):
+    global offset_x, offset_y, zoom
+    # Centro attuale della viewport (in pixel)
+    center_x = offset_x + (WIDTH - WIDTH_EXTRA_LEFT - WIDTH_EXTRA_RIGHT) // 2
+    center_y = offset_y + (HEIGHT - HEIGHT_EXTRA_TOP - HEIGHT_EXTRA_BOTTOM) // 2
+    # Centro in coordinate mappa (prima dello zoom)
+    center_map_x = (center_x - WIDTH_EXTRA_LEFT) / (GRID_SIZE * old_zoom)
+    center_map_y = (center_y - HEIGHT_EXTRA_TOP) / (GRID_SIZE * old_zoom)
+    # Nuovo offset per mantenere il centro fisso
+    offset_x = int(center_map_x * GRID_SIZE * new_zoom + WIDTH_EXTRA_LEFT - (WIDTH - WIDTH_EXTRA_LEFT - WIDTH_EXTRA_RIGHT) // 2)
+    offset_y = int(center_map_y * GRID_SIZE * new_zoom + HEIGHT_EXTRA_TOP - (HEIGHT - HEIGHT_EXTRA_TOP - HEIGHT_EXTRA_BOTTOM) // 2)
+    zoom = new_zoom
 
 def line_of_sight_blocked(start_pos, end_pos, grid_properties):
     x1, y1 = start_pos
@@ -414,29 +501,38 @@ class Pedina:
 
     def disegna(self, screen):
         x, y = self.posizione
-        # Ridimensiona leggermente la pedina per lasciare spazio alla barra della vita
-        pedina_offset = GRID_SIZE // 10  # Riduce la dimensione della pedina del 10%
+        sx, sy = world_to_screen(x, y)
+        size = int(GRID_SIZE * zoom)
+        pedina_offset = int(size // 10)
         pedina_rect = pygame.Rect(
-            x * GRID_SIZE + pedina_offset + WIDTH_EXTRA_LEFT,  # Aggiungi lo spazio extra a sinistra
-            y * GRID_SIZE + GRID_SIZE // 3.5 - pedina_offset + HEIGHT_EXTRA_TOP,  # Aggiungi lo spazio extra sopra
-            GRID_SIZE - 2 * pedina_offset,
-            GRID_SIZE - 2 * pedina_offset
+            sx + pedina_offset,
+            sy + size // 3.5 - pedina_offset,
+            size - 2 * pedina_offset,
+            size - 2 * pedina_offset
         )
-        screen.blit(pygame.transform.scale(self.immagine, pedina_rect.size), pedina_rect.topleft)
-        # Disegna la barra della vita sopra la pedina
-        self.disegna_barra_vita(screen)
+        # Controlla se la pedina è completamente fuori dal riquadro visibile della mappa
+        if (
+            sx < WIDTH_EXTRA_LEFT or
+            sx + size > WIDTH - WIDTH_EXTRA_RIGHT or
+            sy < HEIGHT_EXTRA_TOP or
+            sy + size > HEIGHT - HEIGHT_EXTRA_BOTTOM
+        ):
+            return  # Non disegnare la pedina se è completamente fuori
 
-    def disegna_barra_vita(self, screen):
-        x, y = self.posizione
-        lunghezza_barra = GRID_SIZE - 4  # Riduce lunghezza della barra per adattarla
-        altezza_barra = 5
+        # Disegna la pedina (solo se almeno parzialmente visibile)
+        screen.blit(pygame.transform.smoothscale(self.immagine, pedina_rect.size), pedina_rect.topleft)
+        self.disegna_barra_vita(screen, sx, sy, size)
+
+    def disegna_barra_vita(self, screen, sx, sy, size):
+        lunghezza_barra = size - 4  # Adatta la lunghezza della barra alla dimensione zoommata
+        altezza_barra = max(3, size // 13)  # Adatta l'altezza della barra
         vita_percentuale = self.vita / self.vita_massima
         lunghezza_vita = int(lunghezza_barra * vita_percentuale)
-        
-        # Posizioniamo la barra della vita sopra la pedina, nella parte superiore della casella
-        barra_x = x * GRID_SIZE + WIDTH_EXTRA_LEFT + 2  # Aggiungi lo spazio extra a sinistra
-        barra_y = y * GRID_SIZE + HEIGHT_EXTRA_TOP + 2  # Aggiungi lo spazio extra sopra
-        
+
+        # Posiziona la barra sopra la pedina, nella parte superiore della casella zoommata
+        barra_x = sx + 2
+        barra_y = sy + 2
+
         # Disegna la barra rossa (sfondo)
         pygame.draw.rect(screen, RED, (barra_x, barra_y, lunghezza_barra, altezza_barra))
         # Disegna la barra verde (vita rimanente)
@@ -445,31 +541,31 @@ class Pedina:
     def disegna_tasti_attorno(self, screen):
         if self.tasti_visibili:
             x, y = self.posizione
-            centro_x = x * GRID_SIZE + GRID_SIZE // 2 + WIDTH_EXTRA_LEFT
-            centro_y = y * GRID_SIZE + GRID_SIZE // 2 + HEIGHT_EXTRA_TOP
-            raggio = GRID_SIZE // 5  # Raggio dei cerchi
+            centro_x, centro_y = world_to_screen(x, y)
+            centro_x += int(GRID_SIZE * zoom // 2)
+            centro_y += int(GRID_SIZE * zoom // 2)
+            raggio = int((GRID_SIZE // 5) * zoom)
 
-            # Offset per posizionare i sei cerchi attorno alla pedina
             offset = [
-                (-0.75 * GRID_SIZE, -0.75 * GRID_SIZE),  # Alto sinistra
-                (-GRID_SIZE, 0),                         # Sinistra
-                (-0.75 * GRID_SIZE, 0.75 * GRID_SIZE),   # Basso sinistra
-                (0.75 * GRID_SIZE, -0.75 * GRID_SIZE),   # Alto destra
-                (GRID_SIZE, 0),                          # Destra
-                (0.75 * GRID_SIZE, 0.75 * GRID_SIZE),    # Basso destra
+                (-0.75 * GRID_SIZE * zoom, -0.75 * GRID_SIZE * zoom),
+                (-GRID_SIZE * zoom, 0),
+                (-0.75 * GRID_SIZE * zoom, 0.75 * GRID_SIZE * zoom),
+                (0.75 * GRID_SIZE * zoom, -0.75 * GRID_SIZE * zoom),
+                (GRID_SIZE * zoom, 0),
+                (0.75 * GRID_SIZE * zoom, 0.75 * GRID_SIZE * zoom),
             ]
 
             for i, (dx, dy) in enumerate(offset):
                 cerchio_x = centro_x + dx
                 cerchio_y = centro_y + dy
 
-                # Creare una superficie trasparente per il cerchio
                 cerchio_surface = pygame.Surface((raggio * 2, raggio * 2), pygame.SRCALPHA)
-                pygame.draw.circle(cerchio_surface, (0, 0, 0, 128), (raggio, raggio), raggio)  # Blu trasparente
+                pygame.draw.circle(cerchio_surface, (0, 0, 0, 128), (raggio, raggio), raggio)
                 screen.blit(cerchio_surface, (cerchio_x - raggio, cerchio_y - raggio))
 
                 # Disegna un numero o un'icona per identificare il tasto
-                font = pygame.font.Font(None, 24)
+                font_size = int(24 * zoom)
+                font = pygame.font.Font(None, max(12, font_size))
 
                 if i == 0:
                     text = font.render("F", True, WHITE)
@@ -502,19 +598,18 @@ class Pedina:
                 for dy in range(-raggio_movimento, raggio_movimento + 1):
                     if abs(dx) + abs(dy) <= raggio_movimento and (dx != 0 or dy != 0):
                         nuova_posizione = (x + dx, y + dy)
-                        cerchio_x = (x + dx) * GRID_SIZE + GRID_SIZE // 2 + WIDTH_EXTRA_LEFT
-                        cerchio_y = (y + dy) * GRID_SIZE + GRID_SIZE // 2 + HEIGHT_EXTRA_TOP
-                        if cerchio_y >= HEIGHT_EXTRA_TOP and cerchio_y < (HEIGHT - HEIGHT_EXTRA_BOTTOM):
+                        screen_cx, screen_cy = world_to_screen(x + dx + 0.5, y + dy + 0.5)
+                        if screen_cy >= HEIGHT_EXTRA_TOP and screen_cy < (HEIGHT - HEIGHT_EXTRA_BOTTOM):
                             cell_properties = get_cell_properties(nuova_posizione, grid_properties)
                             if (
-                                cerchio_x >= WIDTH_EXTRA_LEFT and cerchio_x < (WIDTH - WIDTH_EXTRA_RIGHT) and
-                                cerchio_y >= HEIGHT_EXTRA_TOP and cerchio_y < (HEIGHT - HEIGHT_EXTRA_BOTTOM)
+                                screen_cx >= WIDTH_EXTRA_LEFT and screen_cx < (WIDTH - WIDTH_EXTRA_RIGHT) and
+                                screen_cy >= HEIGHT_EXTRA_TOP and screen_cy < (HEIGHT - HEIGHT_EXTRA_BOTTOM)
                             ):
-                                if cerchio_x < WIDTH - WIDTH_EXTRA_RIGHT:
+                                if screen_cx < WIDTH - WIDTH_EXTRA_RIGHT:
                                     if cell_properties and not cell_properties.get('walkable', True):
                                         continue
                                     if not any(p.posizione == nuova_posizione for p in pedine):
-                                        draw_circles("corsa", screen, (cerchio_x, cerchio_y))
+                                        draw_circles("corsa", screen, (screen_cx, screen_cy))
 
 
         elif self.azione_corrente == "fuoco":
@@ -528,9 +623,8 @@ class Pedina:
                 for dy in range(-raggio_attacco, raggio_attacco + 1):
                     if abs(dx) + abs(dy) <= raggio_attacco and (dx != 0 or dy != 0):
                         nuova_posizione = (x + dx, y + dy)
-                        cerchio_x = (x + dx) * GRID_SIZE + GRID_SIZE // 2 + WIDTH_EXTRA_LEFT
-                        cerchio_y = (y + dy) * GRID_SIZE + GRID_SIZE // 2 + HEIGHT_EXTRA_TOP
-                        if cerchio_x < WIDTH - WIDTH_EXTRA_RIGHT:
+                        screen_cx, screen_cy = world_to_screen(x + dx + 0.5, y + dy + 0.5)
+                        if screen_cx < WIDTH - WIDTH_EXTRA_RIGHT:
                             type_1 = type(self).__name__
                             target = next((p for p in pedine if p.posizione == nuova_posizione and compatibilità(type_1, type(p).__name__)), None)
                             type_2 = type(target).__name__
@@ -543,12 +637,12 @@ class Pedina:
                                         else:
                                             if isinstance(self, Obice):
                                                 # Per l'Obice, ignora la linea di vista e disegna comunque il cerchio rosso
-                                                draw_circles("fuoco", screen, (cerchio_x, cerchio_y))
+                                                draw_circles("fuoco", screen, (screen_cx, screen_cy))
                                             elif not line_of_sight_blocked(self.posizione, target.posizione, grid_properties):
                                                 # Per le altre pedine, considera la linea di vista
                                                 if compatibilità(type_1, type_2):
-                                                    draw_circles("fuoco", screen, (cerchio_x, cerchio_y))
-                                
+                                                    draw_circles("fuoco", screen, (screen_cx, screen_cy))
+
         elif self.azione_corrente == "avanti":
             # Disegna i cerchi blu per il movimento (prima fase)
             self.avanti = True
@@ -556,7 +650,7 @@ class Pedina:
             self.disegna_movimento(screen, pedine, grid_properties)
             # Disegna i cerchi rossi per l'attacco (seconda fase) in gestisci_click
 
-    def attacca(self, bersaglio, pedine, teams, defense_bonus):
+    def attacca(self, bersaglio, pedine, teams, defense_bonus,):
         global game_data
         if not self.avanti:
             azione = {
@@ -581,10 +675,10 @@ class Pedina:
         else:
             giù_bonus = 0
 
-        # controlla se self è un carro armato (non deve usare cannone ma la mitragliatrice contro fanteria)
+        # controlla se self è un veicolo (non deve usare cannone ma la mitragliatrice contro fanteria)
         type_1 = type(self).__name__
         type_2 = type(bersaglio).__name__
-        if (type_1 == "CarroMedio" or type_1 == "CarroPesante") and (type_2 == "Fucile" or type_2 == "FucileAssalto" or type_2 == "MitragliatriceLeggera" or type_2 == "MitragliatriceMedia" or type_2 == "MitragliatricePesante"):
+        if (type_1 == "CarroMedio" or type_1 == "CarroPesante" or type_1 == "Blindato") and (type_2 != "CarroMedio" or type_2 != "CarroPesante" or type_2 != "Blindato"):
             danno = MitragliatricePesante.potenza_fuoco
             self.colpi = MitragliatricePesante.colpi
             self.probabilità_colpire = MitragliatricePesante.probabilità_colpire
@@ -599,7 +693,7 @@ class Pedina:
                         danno_effettivo = int(((danno + variazione_danno) * (1 - defense_bonus / 100) / 2) - giù_bonus)
                     elif self.imboscata:
                         danno_effettivo = int(((danno + variazione_danno) * (1 - defense_bonus / 100) * 2) - giù_bonus)
-                        self.imboscata = False  # L'azione imboscata vale solo per il turno successivo
+                        self.imboscata = False  # L'azione imboscata vale solo per un turno
                     else:
                         danno_effettivo = int(((danno + variazione_danno) * (1 - defense_bonus / 100)) - giù_bonus)
 
@@ -608,21 +702,33 @@ class Pedina:
 
                     print(f"{self.nome} attacca {bersaglio.nome} con potenza {danno} con variazione {variazione_danno} con bonus difesa {defense_bonus}% e giù_bonus {giù_bonus}. Danno effettivo: {danno_effettivo}")
                     bersaglio.prendi_danno(danno_effettivo, pedine)
-                    bersaglio.disegna_barra_vita(screen)
+                    sx, sy = world_to_screen(bersaglio.posizione[0], bersaglio.posizione[1])
+                    size = int(GRID_SIZE * zoom)
+                    bersaglio.disegna_barra_vita(screen, sx, sy, size)
 
                     # Calcola il pan in base alla posizione della pedina
                     panpot = self.posizione[0] * (2 * GRID_SIZE) / (WIDTH - WIDTH_EXTRA_RIGHT) - 1 # Da -1.0 (sinistra) a 1.0 (destra)
-                    print(f"Pan calcolato: {int(panpot * 100)}")
+                    print(f"Panpot calcolato: {int(panpot * 100)}")
                     play_sound_with_pan(attack_sound, panpot, volume_sound)
 
-                    explosion_frames = extract_frames_from_sprite_sheet(explosion_image, GRID_SIZE, GRID_SIZE)
+                    # Calcola la posizione schermo del bersaglio
+                    sx, sy = world_to_screen(bersaglio.posizione[0], bersaglio.posizione[1])
+                    size = int(GRID_SIZE * zoom)
+
+                    #
+                    # Estrai i frame dallo sprite sheet alla risoluzione base
+                    explosion_frames = extract_frames_from_sprite_sheet(explosion_image, GRID_SIZE, GRID_SIZE)  # Usa la risoluzione reale dei frame
+
+                    # Ridimensiona i frame in base allo zoom
+                    explosion_frames_zoomed = [
+                        pygame.transform.smoothscale(frame, (size, size)) for frame in explosion_frames
+                    ]
+
+                    # Riproduci l'animazione centrata sulla cella
                     play_animation(
                         screen,
-                        explosion_frames,
-                        (
-                            bersaglio.posizione[0] * GRID_SIZE + WIDTH_EXTRA_LEFT,
-                            bersaglio.posizione[1] * GRID_SIZE + HEIGHT_EXTRA_TOP
-                        )
+                        explosion_frames_zoomed,
+                        (sx, sy)
                     )
                 else:
                      print(f"{self.nome} spara colpo {i+1}/{self.colpi} MANCATO su {bersaglio.nome}!")
@@ -750,14 +856,6 @@ class Blindato(Pedina):
         self.colpi = 3
         self.probabilità_colpire = MitragliatricePesante.probabilità_colpire
 
-def draw_grid():
-    offset_x = WIDTH_EXTRA_LEFT  # Spazio extra a sinistra
-    offset_y = HEIGHT_EXTRA_TOP  # Spazio extra sopra
-    for x in range(offset_x, WIDTH - WIDTH_EXTRA_RIGHT, GRID_SIZE):  # Limita la griglia alla larghezza originale
-        for y in range(offset_y, HEIGHT - HEIGHT_EXTRA_BOTTOM, GRID_SIZE):  # Limita la griglia all'altezza originale
-            rect = pygame.Rect(x, y, GRID_SIZE, GRID_SIZE)
-            pygame.draw.rect(screen, WHITE, rect, 1)
-
 def gestisci_click(mouse_pos, pedine, grid_properties, teams):
     current_team = teams[current_team_index]  # Ottieni la squadra corrente
 
@@ -765,9 +863,6 @@ def gestisci_click(mouse_pos, pedine, grid_properties, teams):
     pedina_in_azione = next((p for p in pedine if p.selezionata and p.azione_corrente is not None), None)
     pedina = pedina_in_azione
     if pedina_in_azione:
-        #print(f"{pedina_in_azione.nome} sta eseguendo l'azione {pedina_in_azione.azione_corrente}")
-        # Permetti alla pedina selezionata di completare la sua azione
-
         if pedina.azione_corrente == "fuoco":
             x, y = pedina.posizione
             cell_properties = get_cell_properties(pedina.posizione, grid_properties)
@@ -778,11 +873,12 @@ def gestisci_click(mouse_pos, pedine, grid_properties, teams):
                 for dy in range(-raggio, raggio + 1):
                     if abs(dx) + abs(dy) <= raggio and (dx != 0 or dy != 0):
                         nuova_posizione = (x + dx, y + dy)
+                        screen_cx, screen_cy = world_to_screen(nuova_posizione[0], nuova_posizione[1])
                         rect = pygame.Rect(
-                            nuova_posizione[0] * GRID_SIZE + WIDTH_EXTRA_LEFT,
-                            nuova_posizione[1] * GRID_SIZE + HEIGHT_EXTRA_TOP,
-                            GRID_SIZE,
-                            GRID_SIZE
+                            screen_cx,
+                            screen_cy,
+                            int(GRID_SIZE * zoom),
+                            int(GRID_SIZE * zoom)
                         )
                         if rect.top >= HEIGHT_EXTRA_TOP and rect.bottom <= (HEIGHT - HEIGHT_EXTRA_BOTTOM):
                             type_1 = type(pedina).__name__
@@ -823,11 +919,12 @@ def gestisci_click(mouse_pos, pedine, grid_properties, teams):
                 for dy in range(-raggio, raggio + 1):
                     if abs(dx) + abs(dy) <= raggio and (dx != 0 or dy != 0):
                         nuova_posizione = (x + dx, y + dy)
+                        screen_cx, screen_cy = world_to_screen(nuova_posizione[0], nuova_posizione[1])
                         rect = pygame.Rect(
-                            nuova_posizione[0] * GRID_SIZE + WIDTH_EXTRA_LEFT, 
-                            nuova_posizione[1] * GRID_SIZE + HEIGHT_EXTRA_TOP,
-                            GRID_SIZE,
-                            GRID_SIZE
+                            screen_cx,
+                            screen_cy,
+                            int(GRID_SIZE * zoom),
+                            int(GRID_SIZE * zoom)
                         )
                         if rect.top >= HEIGHT_EXTRA_TOP and rect.bottom <= (HEIGHT - HEIGHT_EXTRA_BOTTOM):
                             if rect.collidepoint(mouse_pos):
@@ -874,24 +971,26 @@ def gestisci_click(mouse_pos, pedine, grid_properties, teams):
         if pedina.tasti_visibili:
             # Gestione del clic sui tasti
             x, y = pedina.posizione
-            centro_x = x * GRID_SIZE + GRID_SIZE // 2 + WIDTH_EXTRA_LEFT
-            centro_y = y * GRID_SIZE + GRID_SIZE // 2 + HEIGHT_EXTRA_TOP
-            raggio = GRID_SIZE // 5
+            centro_x, centro_y = world_to_screen(x, y)
+            centro_x += int(GRID_SIZE * zoom // 2)
+            centro_y += int(GRID_SIZE * zoom // 2)
+            raggio = int((GRID_SIZE // 5) * zoom)
 
-            # Offset per posizionare i sei cerchi attorno alla pedina
             offset = [
-                (-0.75 * GRID_SIZE, -0.75 * GRID_SIZE),  # Alto sinistra
-                (-GRID_SIZE, 0),                         # Sinistra
-                (-0.75 * GRID_SIZE, 0.75 * GRID_SIZE),   # Basso sinistra
-                (0.75 * GRID_SIZE, -0.75 * GRID_SIZE),   # Alto destra
-                (GRID_SIZE, 0),                          # Destra
-                (0.75 * GRID_SIZE, 0.75 * GRID_SIZE),    # Basso destra
+                (-0.75 * GRID_SIZE * zoom, -0.75 * GRID_SIZE * zoom),
+                (-GRID_SIZE * zoom, 0),
+                (-0.75 * GRID_SIZE * zoom, 0.75 * GRID_SIZE * zoom),
+                (0.75 * GRID_SIZE * zoom, -0.75 * GRID_SIZE * zoom),
+                (GRID_SIZE * zoom, 0),
+                (0.75 * GRID_SIZE * zoom, 0.75 * GRID_SIZE * zoom),
             ]
 
             for i, (dx, dy) in enumerate(offset):
                 cerchio_x = centro_x + dx
                 cerchio_y = centro_y + dy
-                cerchio_rect = pygame.Rect(cerchio_x - raggio, cerchio_y - raggio, raggio * 2, raggio * 2)
+                cerchio_rect = pygame.Rect(
+                    cerchio_x - raggio, cerchio_y - raggio, raggio * 2, raggio * 2
+                )
                 if cerchio_rect.collidepoint(mouse_pos):
                     # Esegui l'azione corrispondente al tasto
                     if i == 0:
@@ -959,18 +1058,14 @@ def gestisci_click(mouse_pos, pedine, grid_properties, teams):
                     return
 
     # Selezione della pedina
+    mx, my = mouse_pos
+    wx, wy = screen_to_world(mx, my)
     for pedina in pedine:
         if pedina.team != current_team or pedina.ha_agito:
             continue  # Salta le pedine che non appartengono alla squadra corrente o che hanno già agito
 
         x, y = pedina.posizione
-        rect = pygame.Rect(
-            x * GRID_SIZE + WIDTH_EXTRA_LEFT,
-            y * GRID_SIZE + HEIGHT_EXTRA_TOP,
-            GRID_SIZE,
-            GRID_SIZE
-        )
-        if rect.collidepoint(mouse_pos):
+        if int(wx) == x and int(wy) == y:
             if pedina.selezionata:
                 print(f"Deseleziona {pedina.nome} ({pedina.team.name})")
                 pedina.selezionata = False
@@ -1032,7 +1127,6 @@ def main():
     # Carica e riproduci la musica di sottofondo
     pygame.mixer.init()  # Inizializza il mixer audio
     pygame.mixer.music.load(background_music)
-
     pygame.mixer.music.set_volume(volume)
     pygame.mixer.music.play(-1)  # Riproduci in loop
 
@@ -1043,6 +1137,7 @@ def main():
     # ciclo principale
     while True:
         current_team = teams[current_team_index]
+        global zoom, offset_x, offset_y
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1067,9 +1162,27 @@ def main():
                     if volume_sound != sound_previous_volume:
                         continue  # Se il volume dei suoni è stato aggiornato, salta il resto
 
-            # Gestisci il click sulle pedine (solo se non è stato gestito dallo slider)
+            # Zoom con rotella del mouse
             if event.type == pygame.MOUSEBUTTONDOWN:
-                gestisci_click(event.pos, pedine, grid_properties, teams)
+                if event.button == 1:  # Solo click sinistro
+                    gestisci_click(event.pos, pedine, grid_properties, teams)
+                if event.button == 4:  # Scroll up
+                    if zoom < ZOOM_MAX:
+                        zoom_at_center(zoom + 0.1, zoom)
+                elif event.button == 5:  # Scroll down
+                    if zoom > ZOOM_MIN:
+                        new_zoom = max(zoom - 0.1, ZOOM_MIN)
+                        zoom_at_center(new_zoom, zoom)
+            # Pan con tasti freccia
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    offset_x = max(0, offset_x - int(50 * zoom))
+                elif event.key == pygame.K_RIGHT:
+                    offset_x = min(int(n_celle_x * GRID_SIZE * (zoom - 1)), offset_x + int(50 * zoom))
+                elif event.key == pygame.K_UP:
+                    offset_y = max(0, offset_y - int(50 * zoom))
+                elif event.key == pygame.K_DOWN:
+                    offset_y = min(int(n_celle_y * GRID_SIZE * (zoom - 1)), offset_y + int(50 * zoom))
 
         # Controlla se tutte le pedine della squadra corrente hanno completato le loro azioni
         if all_pedine_moved(pedine, current_team):
@@ -1077,7 +1190,6 @@ def main():
         
         # Disegna l'immagine di sfondo
         screen.blit(background_image, (0, 0))
-        draw_grid()
 
         # Disegna i contatori delle pedine uccise
         draw_counters(screen)
@@ -1099,6 +1211,11 @@ def main():
         # Disegna il possibile movimento e i cerchi rossi
         for pedina in pedine: 
             pedina.disegna_movimento(screen, pedine, grid_properties)
+
+        # Disegna gli scrollbar
+        draw_view_scrollbars(screen)
+        # Disegna l'indicatore di zoom
+        draw_zoom_indicator(screen, zoom)
 
         pygame.display.flip()
         clock.tick(FPS)

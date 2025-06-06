@@ -42,6 +42,15 @@ git clone https://github.com/Brodvd/Wargame.git
 python main.py
 ```
 
+## 🔍 Come usare lo Zoom nella mappa
+
+- **Scroll up:**  Use the **mouse wheel** or the pinch-out gesture on the touchpad to **zoom in** and see the map more closely.
+- **Scroll down:**  Use the **mouse wheel** or pinch-in gesture on the touchpad to **zoom out** and see a larger portion of the map.
+- **Limits:**  The zoom is limited between the **minimum** and **maximum** values ​​set by the game, so you can't zoom too close or too far.
+- **Indicator:**  At the top right the **current zoom value** is shown in percentage.
+
+  **Note:** Zoom keeps the center of your view fixed, so you can explore the map without losing your bearings.
+
 ## 🎮 Gameplay
 
 - **Select a unit** by clicking on it.

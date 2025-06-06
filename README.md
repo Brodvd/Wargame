@@ -15,7 +15,7 @@ This **Wargame** is a turn-based strategy video game inspired by classic tableto
 
 ## 💻 Requirements
 
-- Make sure you have a screen resolution larger than the game window (the size can be changed by global variables). See [custom.md](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/custom.md) for more details.
+- Make sure you have a screen resolution larger than the game window (the size can be changed by global variables). See `custom.md` for more details.
 - Python 3.8+
 - [pygame](https://www.pygame.org/)
 - [scikit-learn](https://scikit-learn.org/) (only for the AI part)
@@ -60,11 +60,11 @@ python main.py
 - **Units and squads**: Editable via JSON files in the `assets/` folder.
 - **Rules**: You can change unit parameters directly in the code.
 - **Animations, images, and sounds**: Replace or add sprites and audio files in the `assets/` folder.
-  For more details, see the [custom.md](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/custom.md) file.
+  For more details, see the `custom.md` file.
 
 ## 📚 Rulebook
 
-For detailed game rules, see the [rulebook](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/rulebook.md).
+For detailed game rules, see the `rulebook`.
 
 ## 📖 License
 
@@ -77,4 +77,4 @@ I'm sorry for having written the code in Italian; it will be translated into Eng
 
 ## ❓ Questions, bugs, or ideas?
 
-For anything, open an issue in this repository ;)
+For anything, open an issue in this repository :)

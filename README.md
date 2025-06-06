@@ -15,6 +15,7 @@ This **Wargame** is a turn-based strategy video game inspired by classic tableto
 
 ## 💻 Requirements
 
+- Make sure you have a screen resolution larger than the game window (the size can be changed by global variables). See [custom.md](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/custom.md) for more details.
 - Python 3.8+
 - [pygame](https://www.pygame.org/)
 - [scikit-learn](https://scikit-learn.org/) (only for the AI part)

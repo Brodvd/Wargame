@@ -8,13 +8,14 @@ HEIGHT_EXTRA_TOP = 60
 HEIGHT_EXTRA_BOTTOM = 20
 
 GRID_SIZE = 45  # Dimensione celle
-celle_x = 28
-celle_y = 13
+n_celle_x = 25
+n_celle_y = 13
 
 # larghezza = (altezza * 16) / 10
-WIDTH, HEIGHT = (GRID_SIZE*celle_x) + WIDTH_EXTRA_LEFT + WIDTH_EXTRA_RIGHT, (GRID_SIZE*celle_y) + HEIGHT_EXTRA_TOP + HEIGHT_EXTRA_BOTTOM
+WIDTH, HEIGHT = (GRID_SIZE*n_celle_x) + WIDTH_EXTRA_LEFT + WIDTH_EXTRA_RIGHT, (GRID_SIZE*n_celle_y) + HEIGHT_EXTRA_TOP + HEIGHT_EXTRA_BOTTOM
 
 FPS = 30
+MAX_FPS_GIF = 30
 squadraInizio = "Rosso"
 
 # Bot
@@ -51,8 +52,14 @@ sound_slider_y = (HEIGHT - (HEIGHT / 2.5)) // 1.1 + (HEIGHT_EXTRA_TOP) / 2
 sound_slider_height = HEIGHT / 2.5
 sound_slider_width = 20
 
-volume_sound = 0.5
-volume = 0.5
+volume_sound = 0.0
+volume = 0.0
+
+zoom = 1.0
+ZOOM_MIN = 0.5
+ZOOM_MAX = 2.0
+offset_x = 0
+offset_y = 0
 
 # Percorsi
 background_image = pygame.image.load("assets/extra_background.webp")

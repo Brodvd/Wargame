@@ -1,6 +1,6 @@
 # 🕹️ Wargame
 
-This **Wargame** is a turn-based strategy video game inspired by classic tabletop wargames like *[Bolt Action](https://eu.warlordgames.com/collections/bolt-action?srsltid=AfmBOoomOFNwsMfr3qrIDN47BaIVOAbGaVkJNtKUVCzWRagfxdHIy6p0)*, developed in Python with Pygame. The game simulates battles between squads of units on a grid map, with simple but effective rules and very low computer resource usage.
+This **Wargame** is a turn-based strategy video game inspired by classic tabletop wargames like *[Bolt Action](https://eu.warlordgames.com/collections/bolt-action?srsltid=AfmBOoomOFNwsMfr3qrIDN47BaIVOAbGaVkJNtKUVCzWRagfxdHIy6p0)*, developed in Python with Pygame. The game simulates battles between squads of units on a grid map, with simple rules and very low computer resource usage.
 
 ## 💪 Main Features
 

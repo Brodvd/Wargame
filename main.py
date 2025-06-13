@@ -574,17 +574,17 @@ class Piece:
                 font = pygame.font.Font(None, max(12, font_size))
 
                 if i == 0:
-                    text = font.render("F", True, WHITE)
+                    text = font.render("S", True, WHITE)
                 elif i == 1:
-                    text = font.render("A", True, WHITE)
+                    text = font.render("F", True, WHITE)
                 elif i == 2:
-                    text = font.render("C", True, WHITE)
+                    text = font.render("M", True, WHITE)
                 elif i == 3:
-                    text = font.render("I", True, WHITE)
+                    text = font.render("A", True, WHITE)
                 elif i == 4:
                     text = font.render("R", True, WHITE)
                 elif i == 5:
-                    text = font.render("G", True, WHITE)
+                    text = font.render("D", True, WHITE)
 
                 text_rect = text.get_rect(center=(circle_x, circle_y))
                 screen.blit(text, text_rect)

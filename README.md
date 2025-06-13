@@ -83,7 +83,6 @@ This project is distributed under the GPL-3 license. Images and sounds are for d
 ## 🗃️ Resources
 
 Some resources are temporary and will be improved in the future.
-I'm sorry for having written the code in Italian; it will be translated into English in the future.
 
 ## ❓ Questions, bugs, or ideas?
 

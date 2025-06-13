@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDis
 from sklearn.model_selection import learning_curve
 import seaborn as sns
 import matplotlib.pyplot as plt
-from variables import squadraBot, predict_dataset, HEIGHT, GRID_SIZE, HEIGHT_EXTRA_BOTTOM, HEIGHT_EXTRA_TOP
+from variables import squadraBot, predict_dataset, n_celle_y
 
 train = True
 #test = False
@@ -116,7 +116,7 @@ class WargameSupervisedBot:
                                     (baricentro_alleati[1] - baricentro_nemici[1]) ** 2) ** 0.5
                 
                 # Localizzazione a grandi linee del baricentro nemico sull'ordinata (1,2,3 a seconda se il baricentro si trova in alto, in centro o in basso)
-                n_caselle = (HEIGHT-HEIGHT_EXTRA_TOP-HEIGHT_EXTRA_BOTTOM)/GRID_SIZE
+                n_caselle = n_celle_y
                 parte = n_caselle/3
                 if baricentro_nemici[1] <= parte:
                     loc = 1

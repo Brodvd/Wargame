@@ -1,6 +1,6 @@
 # 🕹️ Wargame
 
-This **Wargame** is a turn-based strategy video game inspired by classic tabletop wargames like *[Bolt Action](https://eu.warlordgames.com/collections/bolt-action?srsltid=AfmBOoomOFNwsMfr3qrIDN47BaIVOAbGaVkJNtKUVCzWRagfxdHIy6p0)*, developed in Python with Pygame. The game simulates battles between squads of units on a grid map, with simple but effective rules and very low computer resource usage.
+This **Wargame** is a turn-based strategy video game inspired by classic tabletop wargames like *[Bolt Action](https://eu.warlordgames.com/collections/bolt-action?srsltid=AfmBOoomOFNwsMfr3qrIDN47BaIVOAbGaVkJNtKUVCzWRagfxdHIy6p0)*, developed in Python with Pygame. The game simulates battles between squads of units on a grid map, with simple rules and very low computer resource usage.
 
 ## 💪 Main Features
 
@@ -15,6 +15,7 @@ This **Wargame** is a turn-based strategy video game inspired by classic tableto
 
 ## 💻 Requirements
 
+- Make sure you have a screen resolution larger than the game window (the size can be changed by global variables). See `custom.md` for more details.
 - Python 3.8+
 - [pygame](https://www.pygame.org/)
 - [scikit-learn](https://scikit-learn.org/) (only for the AI part)
@@ -25,49 +26,6 @@ This **Wargame** is a turn-based strategy video game inspired by classic tableto
 ```sh
 pip install pygame scikit-learn matplotlib seaborn
 ```
-
-## 🌳 Project Structure
-
-The following image shows the function of the different contents:
-
-<p align="center">
-  <img align="middle" width="800" src="doc/structure.png"/>
-</p>
-
-And this is the folder-structure:
-```
-Wargame
-│
-├── assets
-│   ├── background_music.ogg
-│   ├── explosion3.png
-│   ├── grid_properties.json
-│   ├── sound.wav
-│   └── (other files)
-│
-├── doc
-│   ├── custom.md
-│   ├── rulebook.md
-│   └── structure.png
-│
-├── IA (after)
-│   ├── dataset
-│   │	└── dataset.json
-│   ├── model
-│   │	├── strategy_checkpoint.pkl
-│   │	├── Policy_model_checkpoint.pkl
-│   │	└── Move_model_checkpoint.pkl
-│   └── predict
-│	└── predict.json
-│
-├── LICENSE
-├── MLP.py
-├── README.md
-├── main.py
-├── requirements.txt
-└── variables.py
-```
-All this allows you to quickly change the scenario simply by creating a copy of the folder `assets/` and modifying it.
 
 ## 🏃 Starting the Game
 
@@ -83,6 +41,16 @@ git clone https://github.com/Brodvd/Wargame.git
 ```sh
 python main.py
 ```
+
+## 🔍 How to use zoom in the map
+
+- **Scroll up:**  Use the **mouse wheel** or the pinch-out gesture on the touchpad to **zoom in** and see the map more closely.
+- **Scroll down:**  Use the **mouse wheel** or pinch-in gesture on the touchpad to **zoom out** and see a larger portion of the map.
+- **Keys:** Use the arrow keys to move around the map.
+- **Limits:**  The zoom is limited between the **minimum** and **maximum** values ​​set by the game, so you can't zoom too close or too far.
+- **Indicator:**  At the top right the **current zoom value** is shown in percentage.
+
+  **Note:** Zoom keeps the center of your view fixed, so you can explore the map without losing your bearings.
 
 ## 🎮 Gameplay
 
@@ -102,11 +70,11 @@ python main.py
 - **Units and squads**: Editable via JSON files in the `assets/` folder.
 - **Rules**: You can change unit parameters directly in the code.
 - **Animations, images, and sounds**: Replace or add sprites and audio files in the `assets/` folder.
-  For more details, see the [custom.md](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/custom.md) file.
+  For more details, see the `custom.md` file.
 
 ## 📚 Rulebook
 
-For detailed game rules, see the [rulebook](https://github.com/Brodvd/Wargame/blob/c1910f565838f6671587640123f2ece945e45a53/doc/rulebook.md).
+For detailed game rules, see the `rulebook`.
 
 ## 📖 License
 
@@ -119,4 +87,4 @@ I'm sorry for having written the code in Italian; it will be translated into Eng
 
 ## ❓ Questions, bugs, or ideas?
 
-For anything, open an issue in this repository ;)
+For anything, open an issue in this repository :)

@@ -582,7 +582,7 @@ class Piece:
                 elif i == 3:
                     text = font.render("I", True, WHITE)
                 elif i == 4:
-                    text = font.render("C", True, WHITE)
+                    text = font.render("R", True, WHITE)
                 elif i == 5:
                     text = font.render("G", True, WHITE)
 
@@ -1024,7 +1024,7 @@ def handle_click(mouse_pos, pieces, grid_properties, teams):
                         if record_dataset:
                             record_turn(pieces, action, teams)
                     elif i == 4:
-                        piece.current_action = "heal"
+                        piece.current_action = "rally"
                         piece.buttons_visible = False
                         print(f"Current action set: {piece.current_action}")
                         heal = 20
@@ -1037,7 +1037,7 @@ def handle_click(mouse_pos, pieces, grid_properties, teams):
                         piece.current_action = None
                         action = {
                             "piece": piece.name,
-                            "type": "heal",
+                            "type": "rally",
                             "target": piece.name,
                             "position": list(piece.position)
                         }

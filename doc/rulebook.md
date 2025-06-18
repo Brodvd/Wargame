@@ -47,11 +47,11 @@ Below is a list of all unit types with their properties:
 
 1.  **Unit Selection:** The player selects one of their units that has not yet acted.
 2.  **Action Choice:** For each unit, you can choose between:
-    -   **Fire:** Attacks an enemy unit with effective damage within range.
-    -   **Advance:** Move up to the movement distance and, if possible, immediately attack with half effective damage after moving.
-    -   **Run:** Move the unit up to its movement distance plus one square.
+    -   **Shoot:** Attacks an enemy unit with effective damage within range.
+    -   **forward:** Move up to the movement distance and, if possible, immediately attack with half effective damage after moving.
+    -   **Move:** Move the unit up to its movement distance plus one square.
     -   **Ambush:** The unit remains stationary but prepares to strike with double normal damage on its next turn.
-    -   **Heal:** Recovers health points.
+    -   **Rally:** Recovers health points.
     -   **Down:** The unit remains stationary but gains an additional defense bonus for one turn.
 3.  **Action Resolution:** The action is executed, and prints appear in the console.
 4.  **End Turn:** When all units of a team have acted, the turn passes to the other team.
@@ -61,7 +61,7 @@ Below is a list of all unit types with their properties:
 ## 5. Terrain
 
 - Each cell can affect movement, defense, and attack.
-- Consult the following map legend for details on terrain types:
+- Consult the following legend for details on terrain types:
 
 | Terrain  | Defense Bonus (%) | Movement Cost | Attack Cost | Blocks Line of Sight | Walkable |
 | :------- | :---------------: | :-----------: | :---------: | :------------------: | :------: |
@@ -76,8 +76,8 @@ Below is a list of all unit types with their properties:
 | ruined   | 20                | -1            | 0           | true                 | true** |
 | cover    | 30                | -1            | 2           | false                | true* |
 
-- * Passable by all units except vehicles
-- ** Passable by all units that are not vehicles or artillery
+- `*` Passable by all units except vehicles
+- `**` Passable by all units that are not vehicles or artillery
 **NOTE:** "Ruined" refers to a ruined building, therefore not passable by vehicles and artillery but only soldiers, while "cover" refers to small trenches built with sandbags or stones.
 
 ---

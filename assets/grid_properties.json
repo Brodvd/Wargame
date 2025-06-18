@@ -16,7 +16,7 @@
             "pieces": [
                 {"type": "HeavyTank", "name": "Blue Heavy Tank", "position": [4, 6]},
                 {"type": "Rifle", "name": "Blue Rifle", "position": [3, 5]},
-                {"type": "MediumMachineGun", "name": "Blue MMG", "position": [4, 7]}
+                {"type": "MMG", "name": "Blue MMG", "position": [4, 7]}
             ]
         }
     ],

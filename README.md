@@ -4,7 +4,7 @@ This **Wargame** is a turn-based strategy video game inspired by classic tableto
 
 ## 💪 Main Features
 
-- **Turn-based gameplay**: Each player controls a squad of units and performs actions such as movement, attack, ambush, heal, etc.
+- **Turn-based gameplay**: Each player controls a squad of units and performs actions such as movement, attack, ambush, etc.
 - **Units**: Infantry, tanks, machine guns, mortars, howitzers, armored vehicles, each with unique stats and abilities.
 - **Point system**: Each unit has a point cost to balance the squads.
 - **Multi-shot attacks**: Some weapons fire multiple shots per turn, each with its own hit probability.
@@ -55,7 +55,7 @@ python main.py
 ## 🎮 Gameplay
 
 - **Select a unit** by clicking on it.
-- Choose the action using the buttons that appear around the unit (Fire, Forward, Run, Ambush, Rally, Down).
+- Choose the action using the buttons that appear around the unit (Shoot, Forward, Move, Ambush, Rally, Down).
 - Move units and attack enemies following the movement rules, line of sight, and weapon-target compatibility.
 - The team that eliminates all enemy units and reaches 1000 points wins.
 
@@ -83,7 +83,6 @@ This project is distributed under the GPL-3 license. Images and sounds are for d
 ## 🗃️ Resources
 
 Some resources are temporary and will be improved in the future.
-I'm sorry for having written the code in Italian; it will be translated into English in the future.
 
 ## ❓ Questions, bugs, or ideas?
 

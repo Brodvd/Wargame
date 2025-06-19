@@ -210,11 +210,11 @@ def load_teams_and_pieces(grid_properties):
                 piece = Rifle(name, position, team=team)
             elif piece_type == "AssaultRifle":
                 piece = AssaultRifle(name, position, team=team)
-            elif piece_type == "LightMachineGun":
+            elif piece_type == "LMG":
                 piece = LightMachineGun(name, position, team=team)
-            elif piece_type == "MediumMachineGun":
+            elif piece_type == "MMG":
                 piece = MediumMachineGun(name, position, team=team)
-            elif piece_type == "HeavyMachineGun":
+            elif piece_type == "HMG":
                 piece = HeavyMachineGun(name, position, team=team)
             elif piece_type == "Howitzer":
                 piece = Howitzer(name, position, team=team)
@@ -468,14 +468,14 @@ class Piece:
         self.attack_distance = attack_distance
         self.selected = False
         self.team = team
-        self.image = None    # boh
+        self.image = None
         self.has_acted = False
         self.buttons_visible = False
         self.current_action = None
         self.draw_red_circles = True
         
         self.forward = False     # allows to know if the chosen action = "forward" in draw_movement
-        self.ambush = False  # ambush action
+        self.ambush = False      # ambush action
         self.down = False        # down action
 
     def move(self, new_position, pieces, teams):
@@ -617,13 +617,13 @@ class Piece:
                                     if not any(p.position == new_position for p in pieces):
                                         draw_circles("move", screen, (screen_cx, screen_cy))
 
-
         elif self.current_action == "fire":
             # Draw the red circles for attack
             x, y = self.position
             cell_properties = get_cell_properties(self.position, grid_properties)
             attack_cost = cell_properties['attack_cost'] if cell_properties else 0
             radius_attack = self.attack_distance + attack_cost
+            type_1 = type(self).__name__
 
             for dx in range(-radius_attack, radius_attack + 1):
                 for dy in range(-radius_attack, radius_attack + 1):
@@ -631,7 +631,6 @@ class Piece:
                         new_position = (x + dx, y + dy)
                         screen_cx, screen_cy = world_to_screen(x + dx + 0.5, y + dy + 0.5)
                         if screen_cx < WIDTH - EXTRA_WIDTH_RIGHT:
-                            type_1 = type(self).__name__
                             target = next((p for p in pieces if p.position == new_position and compatibility(type_1, type(p).__name__)), None)
                             type_2 = type(target).__name__
                             if target:
@@ -656,7 +655,7 @@ class Piece:
             self.draw_movement(screen, pieces, grid_properties)
             # Draw the red circles for attack (second phase) in handle_click
 
-    def attack(self, target, pieces, teams, defense_bonus,):
+    def attack(self, target, pieces, teams, defense_bonus, grid_properties):
         global game_data
         if not self.forward:
             action = {
@@ -684,6 +683,7 @@ class Piece:
         # Check if self is a vehicle (should not use cannon but machine gun against infantry)
         type_1 = type(self).__name__
         type_2 = type(target).__name__
+        x, y = target.position
         if (type_1 == "MediumTank" or type_1 == "HeavyTank" or type_1 == "Armored") and (type_2 != "MediumTank" or type_2 != "HeavyTank" or type_2 != "Armored"):
             damage = HeavyMachineGun.fire_power
             self.shots = HeavyMachineGun.shots
@@ -693,54 +693,92 @@ class Piece:
 
         for i in range(self.shots):
             if self.team and target.team and self.team.is_enemy(target.team):
-                if random.random() < self.hit_probability:
-                    damage_variation = random.randint(int(-25/100 * damage), int(25/100 * damage))
-                    if self.forward:
-                        effective_damage = int(((damage + damage_variation) * (1 - defense_bonus / 100) / 2) - down_bonus)
-                    elif self.ambush:
-                        effective_damage = int(((damage + damage_variation) * (1 - defense_bonus / 100) * 2) - down_bonus)
-                        self.ambush = False  # The ambush action is valid only for one turn
-                    else:
-                        effective_damage = int(((damage + damage_variation) * (1 - defense_bonus / 100)) - down_bonus)
+                if self.HE:
+                    print(f"{self.name} attacks area around ({x},{y}) with HE damage")
+                    for rx in range(-1, 2):
+                        for ry in range(-1, 2):
+                            new_position = (x + rx, y + ry)
+                            target = next((p for p in pieces if p.position == new_position), None)
+                            if target:
+                                if target.down:    
+                                    down_bonus = 20
+                                else:
+                                    down_bonus = 0
+                                cell_properties = get_cell_properties(new_position, grid_properties)
+                                defense_bonus = cell_properties['defense_bonus'] if cell_properties else 0
+                                damage_variation = random.randint(int(-25/100 * damage), int(25/100 * damage))
+                                if self.forward:
+                                    effective_damage = int(((damage + damage_variation) * (1 - defense_bonus / 100) / 2) - down_bonus)
+                                elif self.ambush:
+                                    effective_damage = int(((damage + damage_variation) * (1 - defense_bonus / 100) * 2) - down_bonus)
+                                    self.ambush = False  # The ambush action is valid only for one turn
+                                else:
+                                    effective_damage = int(((damage + damage_variation) * (1 - defense_bonus / 100)) - down_bonus)
 
-                    if effective_damage < 0:
-                        effective_damage = 0
+                                if effective_damage < 0:
+                                    effective_damage = 0
+                                target.take_damage(effective_damage, pieces)
+                                sx, sy = world_to_screen(target.position[0], target.position[1])
+                                size = int(CELL_SIZE * zoom)
+                                target.draw_health_bar(screen, sx, sy, size)
+                                panpot = self.position[0] * (2 * CELL_SIZE) / (WIDTH - EXTRA_WIDTH_RIGHT) - 1 # From -1.0 (left) to 1.0 (right)
+                                play_sound_with_pan(attack_sound, panpot, sound_volume)
 
-                    print(f"{self.name} attacks {target.name} with power {damage} with variation {damage_variation} with defense bonus {defense_bonus}% and down_bonus {down_bonus}. Effective damage: {effective_damage}")
-                    target.take_damage(effective_damage, pieces)
-                    sx, sy = world_to_screen(target.position[0], target.position[1])
-                    size = int(CELL_SIZE * zoom)
-                    target.draw_health_bar(screen, sx, sy, size)
+                                # Calculate the screen position of the target
+                                sx, sy = world_to_screen(target.position[0], target.position[1])
+                                size = int(CELL_SIZE * zoom)
+                                # Extract frames from the sprite sheet at the base resolution
+                                explosion_frames = extract_frames_from_sprite_sheet(explosion_image, CELL_SIZE, CELL_SIZE)  # Use the actual resolution of the frames
 
-                    # Calculate the pan based on the position of the piece
-                    panpot = self.position[0] * (2 * CELL_SIZE) / (WIDTH - EXTRA_WIDTH_RIGHT) - 1 # From -1.0 (left) to 1.0 (right)
-                    print(f"Calculated panpot: {int(panpot * 100)}")
-                    play_sound_with_pan(attack_sound, panpot, sound_volume)
+                                # Resize the frames based on the zoom
+                                explosion_frames_zoomed = [
+                                    pygame.transform.smoothscale(frame, (size, size)) for frame in explosion_frames
+                                ]
 
-                    # Calculate the screen position of the target
-                    sx, sy = world_to_screen(target.position[0], target.position[1])
-                    size = int(CELL_SIZE * zoom)
-
-                    #
-                    # Extract frames from the sprite sheet at the base resolution
-                    explosion_frames = extract_frames_from_sprite_sheet(explosion_image, CELL_SIZE, CELL_SIZE)  # Use the actual resolution of the frames
-
-                    # Resize the frames based on the zoom
-                    explosion_frames_zoomed = [
-                        pygame.transform.smoothscale(frame, (size, size)) for frame in explosion_frames
-                    ]
-
-                    # Play the animation centered on the cell
-                    play_animation(
-                        screen,
-                        explosion_frames_zoomed,
-                        (sx, sy)
-                    )
+                                # Play the animation centered on the cell
+                                play_animation(screen,explosion_frames_zoomed,(sx, sy))
+                                target.down = False
                 else:
-                     print(f"{self.name} shot {i+1}/{self.shots} MISSED at {target.name}!")
-                     # Add a missed shot animation (dust instead of explosion
+                    if random.random() < self.hit_probability:
+                        damage_variation = random.randint(int(-25/100 * damage), int(25/100 * damage))
+                        if self.forward:
+                            effective_damage = int(((damage + damage_variation) * (1 - defense_bonus / 100) / 2) - down_bonus)
+                        elif self.ambush:
+                            effective_damage = int(((damage + damage_variation) * (1 - defense_bonus / 100) * 2) - down_bonus)
+                            self.ambush = False  # The ambush action is valid only for one turn
+                        else:
+                            effective_damage = int(((damage + damage_variation) * (1 - defense_bonus / 100)) - down_bonus)
 
-        target.down = False
+                        if effective_damage < 0:
+                            effective_damage = 0
+                        print(f"{self.name} attacks {target.name} with power {damage} with variation {damage_variation} with defense bonus {defense_bonus}% and down_bonus {down_bonus}. Effective damage: {effective_damage}")
+                        target.take_damage(effective_damage, pieces)
+                        sx, sy = world_to_screen(target.position[0], target.position[1])
+                        size = int(CELL_SIZE * zoom)
+                        target.draw_health_bar(screen, sx, sy, size)
+
+                        # Calculate the pan based on the position of the piece
+                        panpot = self.position[0] * (2 * CELL_SIZE) / (WIDTH - EXTRA_WIDTH_RIGHT) - 1 # From -1.0 (left) to 1.0 (right)
+                        play_sound_with_pan(attack_sound, panpot, sound_volume)
+
+                        # Calculate the screen position of the target
+                        sx, sy = world_to_screen(target.position[0], target.position[1])
+                        size = int(CELL_SIZE * zoom)
+
+                        # Extract frames from the sprite sheet at the base resolution
+                        explosion_frames = extract_frames_from_sprite_sheet(explosion_image, CELL_SIZE, CELL_SIZE)  # Use the actual resolution of the frames
+
+                        # Resize the frames based on the zoom
+                        explosion_frames_zoomed = [
+                            pygame.transform.smoothscale(frame, (size, size)) for frame in explosion_frames
+                        ]
+
+                        # Play the animation centered on the cell
+                        play_animation(screen,explosion_frames_zoomed,(sx, sy))
+                    else:
+                        print(f"{self.name} shot {i+1}/{self.shots} MISSED at {target.name}!")
+                        # Add a missed shot animation (dust instead of explosion
+                    target.down = False
 
 def compatibility(type_1, type_2):
     """
@@ -755,112 +793,122 @@ def compatibility(type_1, type_2):
         return False
     elif type_1 == "LightMachineGun" and (type_2 == "HeavyTank" or type_2 == "MediumTank" or type_2 == "Armored"):
         return False
-    elif type_1 == "AntiTankArtillery" and (not type_2 == "HeavyTank" or not type_2 == "MediumTank" or not type_2 == "Armored"):
-        return False
     else:
         return True
 
-# self.valPunti = ogni giocatore può avere una squadra con al massimo un valore di 1000 punti, ogni unità ha un suo "costo" in punti
-# self.colpi = numero di colpi che compie l'arma
-class MediumTank(Piece):
-    def __init__(self, name, position, team=None):
-        super().__init__(name, position, hp=300, move_distance=2, attack_distance=4 , team=team)
-        self.fire_power = 40
-        self.point_value = 500
-        self.shots = 1
-        self.hit_probability = 0.85
-
-class HeavyTank(Piece):
-    def __init__(self, name, position, team=None):
-        super().__init__(name, position, hp=500, move_distance=2, attack_distance=4 , team=team)
-        self.fire_power = 50
-        self.point_value = 600
-        self.shots = 1
-        self.hit_probability = 0.85
-
+# Pieces
 class Rifle(Piece):
     def __init__(self, name, position, team=None):
         super().__init__(name, position, hp=50, move_distance=2, attack_distance=2, team=team)
         self.fire_power = 10
-        self.point_value = 100
+        self.point_value = 50
         self.shots = 1
         self.hit_probability = 0.9
+        self.HE = False
 
 class AssaultRifle(Piece):
     def __init__(self, name, position, team=None):
         super().__init__(name, position, hp=50, move_distance=3, attack_distance=2, team=team)
         self.fire_power = 10
-        self.point_value = 150
+        self.point_value = 100
         self.shots = 2
-        self.hit_probability = 0.8
+        self.hit_probability = 0.85
+        self.HE = False
 
 class LightMachineGun(Piece):
     def __init__(self, name, position, team=None):
-        super().__init__(name, position, hp=60, move_distance=2, attack_distance=3, team=team)
-        self.fire_power = 10
-        self.point_value = 250
-        self.shots = 3
+        super().__init__(name, position, hp=80, move_distance=2, attack_distance=3, team=team)
+        self.fire_power = 15
+        self.point_value = 150
+        self.shots = 2
         self.hit_probability = 0.75
+        self.HE = False 
 
 class MediumMachineGun(Piece):
     def __init__(self, name, position, team=None):
-        super().__init__(name, position, hp=60, move_distance=1, attack_distance=3, team=team)
-        self.fire_power = 10
-        self.point_value = 300
-        self.shots = 4
+        super().__init__(name, position, hp=90, move_distance=1, attack_distance=3, team=team)
+        self.fire_power = 18
+        self.point_value = 200
+        self.shots = 3
         self.hit_probability = 0.7
+        self.HE = False
 
 class HeavyMachineGun(Piece):
     # to use with other classes
-    fire_power = 13
+    fire_power = 20
     shots = 3
-    hit_probability = 0.6
+    hit_probability = 0.65
+    attack_distance = 4 #(checking with other pieces...)
     def __init__(self, name, position, team=None):
-        super().__init__(name, position, hp=60, move_distance=1, attack_distance=3, team=team)
+        super().__init__(name, position, hp=100, move_distance=1, attack_distance=HeavyMachineGun.attack_distance, team=team)
         self.fire_power = HeavyMachineGun.fire_power
-        self.point_value = 350
+        self.point_value = 250
         self.shots = HeavyMachineGun.shots
         self.hit_probability = HeavyMachineGun.hit_probability
+        self.HE = False
 
 class Pyromaniac(Piece):
     def __init__(self, name, position, team=None):
         super().__init__(name, position, hp=60, move_distance=3, attack_distance=1, team=team)
         self.fire_power = 30
-        self.point_value = 250
+        self.point_value = 175
         self.shots = 1
         self.hit_probability = 0.8
+        self.HE = True
 
 class Howitzer(Piece):
     def __init__(self, name, position, team=None):
-        super().__init__(name, position, hp=75, move_distance=2, attack_distance=10, team=team)
-        self.fire_power = 50
-        self.point_value = 250
+        super().__init__(name, position, hp=90, move_distance=2, attack_distance=10, team=team)
+        self.fire_power = 75
+        self.point_value = 225
         self.shots = 1
-        self.hit_probability = 0.8
+        self.hit_probability = 0.75
+        self.HE = True
 
 class Mortar(Piece):
     def __init__(self, name, position, team=None):
-        super().__init__(name, position, hp=50, move_distance=2, attack_distance=10, team=team)
-        self.fire_power = 30
-        self.point_value = 200
+        super().__init__(name, position, hp=60, move_distance=2, attack_distance=10, team=team)
+        self.fire_power = 40
+        self.point_value = 150
         self.shots = 1
         self.hit_probability = 0.8
+        self.HE = True
 
 class AntiTankArtillery(Piece):
     def __init__(self, name, position, team=None):
         super().__init__(name, position, hp=75, move_distance=1, attack_distance=5, team=team)
-        self.fire_power = 50
-        self.point_value = 300
+        self.fire_power = 100
+        self.point_value = 250
         self.shots = 1
         self.hit_probability = 0.9
+        self.HE = False
 
 class Armored(Piece):
     def __init__(self, name, position, team=None):
-        super().__init__(name, position, hp=150, move_distance=3, attack_distance=3, team=team)
+        super().__init__(name, position, hp=150, move_distance=4, attack_distance=HeavyMachineGun.attack_distance, team=team)
         self.fire_power = HeavyMachineGun.fire_power
-        self.point_value = 400
-        self.shots = 3
+        self.point_value = 350
+        self.shots = HeavyMachineGun.shots
         self.hit_probability = HeavyMachineGun.hit_probability
+        self.HE = False
+
+class MediumTank(Piece):
+    def __init__(self, name, position, team=None):
+        super().__init__(name, position, hp=300, move_distance=3, attack_distance=4 , team=team)
+        self.fire_power = 70
+        self.point_value = 400
+        self.shots = 1
+        self.hit_probability = 0.85
+        self.HE = False
+
+class HeavyTank(Piece):
+    def __init__(self, name, position, team=None):
+        super().__init__(name, position, hp=500, move_distance=2, attack_distance=4 , team=team)
+        self.fire_power = 90
+        self.point_value = 500
+        self.shots = 1
+        self.hit_probability = 0.85
+        self.HE = False
 
 def handle_click(mouse_pos, pieces, grid_properties, teams):
     current_team = teams[current_team_index]  # Get the current team
@@ -871,6 +919,7 @@ def handle_click(mouse_pos, pieces, grid_properties, teams):
     if piece_in_action:
         if piece.current_action == "fire":
             x, y = piece.position
+            type_1 = type(piece).__name__
             cell_properties = get_cell_properties(piece.position, grid_properties)
             attack_cost = cell_properties['attack_cost'] if cell_properties else 0
             radius = piece.attack_distance + attack_cost
@@ -887,7 +936,6 @@ def handle_click(mouse_pos, pieces, grid_properties, teams):
                             int(CELL_SIZE * zoom)
                         )
                         if rect.top >= EXTRA_HEIGHT_TOP and rect.bottom <= (HEIGHT - EXTRA_HEIGHT_BOTTOM):
-                            type_1 = type(piece).__name__
                             target = next((p for p in pieces if p.position == new_position and compatibility(type_1, type(p).__name__)), None)
                             type_2 = type(target).__name__
                             if rect.collidepoint(mouse_pos):
@@ -897,7 +945,7 @@ def handle_click(mouse_pos, pieces, grid_properties, teams):
                                     print(f"Target found: {target.name}, Team: {target.team.name}")
                                     if compatibility(type_1, type_2):
                                         if isinstance(piece, Howitzer) or not line_of_sight_blocked(piece.position, target.position, grid_properties):
-                                            piece.attack(target, pieces, teams, defense_bonus)
+                                            piece.attack(target, pieces, teams, defense_bonus, grid_properties)
                                             piece.current_action = None  # Reset the current action
                                             piece.has_acted = True
                                             return

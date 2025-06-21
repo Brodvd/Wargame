@@ -36,7 +36,7 @@ Below is a list of all unit types with their properties:
 | mortar        | 150         | 60  | 2             | 10              | 40         | 1            | 0.8             | Light indirect artillery, `HE`                        |
 | anti tank     | 250         | 75  | 1             | 5               | 100        | 1            | 0.9             | Anti-tank specialist, lethal but vulnerable           |
 | armored       | 350         | 150 | 4             | *HMG* | *HMG* | *HMG* | *HMG* | Infantry support                                      |
-| medium tank   | 400         | 300 | 3             | 4* | 70* | 1* | 0.85* | Main battle tank, versatile                           |
+| medium tank   | 400         | 300 | 3             | 4* | 70* | 1* | 0.85* | Main battle tank,   adaptable                         |
 | heavy tank    | 500         | 500 | 2             | 4* | 90* | 1* | 0.85* | Assault tank, very durable                            |
 
 `*` Values used for vehicle vs. vehicle combat; otherwise, if the opponent is an infantry unit, these values are replaced by those of the *HMG*.
